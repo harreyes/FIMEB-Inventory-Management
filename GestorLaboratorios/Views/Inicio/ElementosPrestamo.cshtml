@@ -1,0 +1,148 @@
+﻿@model GestorLaboratorios.ViewModels.Inicio.ElementosPrestamoViewModel
+
+@using GestorLaboratorios.Settings;
+
+@inject Encrypter encrypter;
+
+<script>
+
+    function entregarElementos() {
+        try {
+            Pace.track(() => {
+                var idsElementos = [];
+                $("table").find("td#tdFiltro input:checked").each((index, item) => {
+                    idsElementos.push(item.id);
+                });
+
+                var data = { IdReservaPrestamo:@Model.IdReservaPrestamo , IdsELementos: idsElementos };
+
+                if (idsElementos.length > 0) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Content("~/Inicio/EntregarElemento")',
+                        data: data,
+                        success: (data) => {
+                            $("#urlRecargar")[0].click();
+                        },
+                        error: (err) => {
+                            console.log(err);
+                        }
+                    });
+                } else {
+                    mensaje("Debe seleccionar algún elemento", "error");
+                }
+            });
+
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+    function cerrarPrestamo() {
+        try {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Content("~/Inicio/CambiarEstadoReservaPrestamo")',
+                data: { IdPrestamoReserva : @Model.IdReservaPrestamo, IdEstado : 2, Prestamo:true},
+                success: (data) => {
+                    window.location.href = '@Url.Content("~/Inicio/Inicio")';
+                },
+                error: (err) => {
+                    console.log(err);
+                }
+            });
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+    $(function () {
+
+
+        if (@Model.IdEstadoReservaPrestamo ==1){
+            var idsElementos = [];
+
+            $("table").find("td#tdFiltro input").each((index, item) => {
+                idsElementos.push(item.id);
+            });
+
+            if (idsElementos.length == 0) {
+                $("#btnEntregarElementos").text("Cerrar").attr("onclick", "cerrarPrestamo();");
+            }
+        }
+
+    });
+
+    @Html.Raw(Model.JsFuncion)
+
+</script>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <h3 class="mt-5">Elementos Reserva Prestamo # @Model.IdReservaPrestamo</h3>
+            </div>
+        </div>
+        <a id="urlRecargar" style="display:none;" asp-controller="Inicio" asp-action="ElementosPrestamo"
+           asp-route-IdPresEncrip="@encrypter.Encrypt(Model.IdReservaPrestamo.ToString())"
+           asp-route-IdEstadoEncrip="@encrypter.Encrypt(Model.IdEstadoReservaPrestamo.ToString())">
+        </a>
+
+        <div class="row">
+            <div class="col-lg-2 col-md-2 col-sm-12">
+                @if (Model.IdEstadoReservaPrestamo == 1)
+                {
+                    <button id="btnEntregarElementos" class="btn btn-success" onclick="entregarElementos();">Entregar</button>
+                }
+                <a asp-controller="Inicio" asp-action="Inicio">
+                    <input type="button" class="btn btn-danger" value="Volver" />
+                </a>
+            </div>
+        </div>
+
+        <div class="row" style="padding:2% 0;">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                @if (Model.ListadoPrestamoElementos != null)
+                {
+                    <table class="table-sm table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Placa</th>
+                                <th>Serial</th>
+                                <th>Modelo</th>
+                                <th>Marca</th>
+                                <th>Entregado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var elemento in Model.ListadoPrestamoElementos)
+                            {
+                                <tr>
+                                    <td id="tdFiltro">
+                                        @if (elemento.Entregado == 0 && Model.IdEstadoReservaPrestamo == 1)
+                                        {
+                                            <input id="@encrypter.Encrypt(elemento.IdElemento.ToString())" type="checkbox" />
+                                        }
+                                    </td>
+                                    <td>@elemento.PlacaElemento</td>
+                                    <td>@elemento.SerialElemento</td>
+                                    <td>@elemento.ModeloElemento</td>
+                                    <td>@elemento.MarcaElemento</td>
+                                    <td>@((elemento.Entregado == 1) ? "SI" : "NO")</td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <h1>Error al cargar los datos</h1>
+                }
+            </div>
+        </div>
+    </div>
+</div>

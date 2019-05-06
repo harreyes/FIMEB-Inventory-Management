@@ -1,0 +1,36 @@
+﻿@model GestorLaboratorios.ViewModels.Configuracion.ElementoPrestamoViewModel
+
+<div class="col-lg-12 col-md-12 col-sm-12">
+
+    <form id="formularioCrearPrestamo" onsubmit="crearPrestamo(this); return false;">
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <label>Estudiante</label>
+                <select class="form-control" asp-items="Model.ListadoUsuarios" asp-for="IdUsuario"></select>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <label>Fecha</label>
+                <input asp-for="Fecha" class="form-control" id="fechaInicio" placeholder="Fecha inicio" type="date" />
+            </div>
+            @*<div class="col-lg-4 col-md-4 col-sm-12">
+                <label>Fecha Fin</label>
+                <input asp-for="FechaFin" class="form-control" id="fechaInicio" placeholder="Fecha fin" type="date" />
+            </div>*@
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <label>Profesor</label>
+                <input asp-for="Profesor" class="text-capitalize form-control" id="profesor" />
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <label>Materia</label>
+                <input asp-for="Materia" class="text-capitalize form-control" id="materia" />
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <input type="button" class="btn btn-danger" value="Cancelar" onclick="cancelar();" />
+            </div>
+        </div>
+    </form>
+</div>

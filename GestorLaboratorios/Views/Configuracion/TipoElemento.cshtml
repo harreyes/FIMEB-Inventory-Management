@@ -1,0 +1,171 @@
+﻿@model GestorLaboratorios.ViewModels.Configuracion.TipoElementoViewModel
+
+<script type="text/javascript">
+
+    /**
+     * Muestra el div de editar y crear
+     * */
+    function mostrarDivCrear() {
+        try {
+            $("#idTipoElementoOculto").val(0);
+            var textoBoton = ($("#idTipoElementoOculto").val() == "0") ? "Insertar" : "Actualizar";
+            $("#btnGuardar").html(textoBoton);
+            $("#descripcion").val("");
+            $("#ckbActivo, #lblActivo").css("display", "none");
+            $("#divCrearEditar").css("display", "block");
+        } catch (err) {
+            mensaje("Error al mostrar la información","error");
+            console.log(err);
+        }
+    }
+
+    /**
+    * Muestra el div de editar y crear
+    * */
+    function mostrarDivEditar(idTipoElemento, descripcion, activo) {
+        try {
+            $("#idTipoElementoOculto").val(idTipoElemento);
+            var textoBoton = ($("#idTipoElementoOculto").val() == 0) ? "Insertar" : "Actualizar";
+            $("#btnGuardar").html(textoBoton);
+            $("#descripcion").val(descripcion);
+            $("#ckbActivo")[0].checked = (activo == 1) ? true : false;
+            $("#divCrearEditar, #ckbActivo, #lblActivo").css("display", "block");
+        } catch (err) {
+            mensaje("Error al mostrar la información", "error");
+            console.log(err);
+        }
+    }
+
+    /**
+     * Se usa para ocultar el div de editar y crear y limpiar los campos
+     * */
+    function cancelar() {
+        try {
+            $("#divCrearEditar").css("display", "none");
+            $("#descripcion").val("");
+            $("#ckbActivo")[0].checked = false;
+        } catch (err) {
+            mensaje("Error al cargar la información", "error");
+            console.log(err);
+        }
+    }
+
+    /**
+     * Actualiza o guarda el tipo de elemento
+     * */
+    function guardar() {
+        try {
+            var descripcion = $("#descripcion").val();
+            if (descripcion != "") {
+                var idTipoElemento = $("#idTipoElementoOculto").val();
+
+                var activo = ($("#ckbActivo")[0].checked) ? 1 : 0;
+
+                var parteMensajeOk = ($("#idTipoElementoOculto").val() == 0) ? 'creó' : "actualizó";
+                var mensajeOk = `Se ${parteMensajeOk} correctamente el tipo de elemento`;
+
+                var parteMensajeKo = ($("#idTipoElementoOculto").val() == 0) ? 'crear' : "actualizar";
+                var mensajeKo = `Error al ${parteMensajeKo} el tipo de elemento`;
+
+                Pace.track(() => {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Content("~/Configuracion/CrearActualizarTipoElemento")',
+                        data: { IdTipoElemento: idTipoElemento, Activo: activo, Descripcion: descripcion },
+                        success: (vista) => {
+                            $("#general").html(vista);
+                            mensaje(mensajeOk, "success");
+                        },
+                        error: (err) => {
+                            //if(err.statusCode)
+                            console.log(err.message);
+                            mensaje(mensajeKo, "error");
+                        }
+                    });
+                });
+            } else {
+                mensaje("Tiene que llenar la descripción", "error");
+            }
+        } catch (err) {
+            mensaje("Error al guardar la información", "error");
+            console.log(err);
+        }
+    }
+
+</script>
+
+
+<div id="general">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <h3 class="mt-5">Tipos Elementos /</h3>
+                </div>
+            </div>
+
+            <div id="divCrearEditar" class="row" style="padding:1%; display:none;">
+
+                <div class="col-lg-1 col-md-1 col-sm-12" style="text-align:left;">
+                    <label>Descripción</label>
+                </div>
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <input id="descripcion" class="form-control" required />
+                </div>
+
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <label id="lblActivo" for="ckbActivo">Activo</label>
+                    <input id="ckbActivo" name="ckbActivo" type="checkbox" />
+                </div>
+
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <button id="btnGuardar" class="btn btn-success" onclick="guardar();"></button>
+                </div>
+
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <button class="btn btn-danger" onclick="cancelar();">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-2 col-md-2 col-sm-12">
+                    <button class="btn btn-primary" onclick="mostrarDivCrear();">Agregar</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    @if (Model.ListadoTipoElemento != null && Model.ListadoTipoElemento.Any())
+                    {
+                        <table class="table table-bordered table-striped" style="width:100%;">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <td scope="col"></td>
+                                    <td scope="col">Descripción</td>
+                                    <td scope="col">Activo</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.ListadoTipoElemento)
+                                {
+                                    <tr>
+                                        <td> <img src="~/images/editar.png" style="cursor:pointer;" onclick="mostrarDivEditar(@item.IdTipoElemento, '@item.Descripcion', @item.Activo);" /> </td>
+                                        <td> @item.Descripcion</td>
+                                        <td><input type="checkbox" disabled checked="@(item.Activo==1?true:false)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    }
+                    else
+                    {
+                        <h1> No hay tipos de elementos</h1>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*Campo oculto para guardar el id del elemento, si es cero es porque es nuevo*@
+    <input id="idTipoElementoOculto" type="hidden" />
+</div>

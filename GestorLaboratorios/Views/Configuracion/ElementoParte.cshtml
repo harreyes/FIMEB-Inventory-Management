@@ -1,0 +1,127 @@
+﻿@model GestorLaboratorios.ViewModels.Configuracion.ElementoParteViewModel;
+
+
+<script>
+
+    /**
+    * Muestra el div de editar y crear
+    * */
+    function mostrarDivCrearEditar(idParteElemento =0, descripcion="", activo=false) {
+        try {
+            $("#idParteElemento").val(idParteElemento);
+            $("#descripcion").val(descripcion);
+            $("#activo").attr("checked",activo);
+            $("#divActivo").css("display", (idParteElemento == 0) ? "none" :"block");
+            $("#divCrearEditar").css("display", "block");
+        } catch (err) {
+            mensaje("Error al mostrar la información", "error");
+            console.log(err);
+        }
+    }
+
+
+    function guardarParteElemento() {
+        try {
+            var idParteElemento = $("#idParteElemento").val();
+            var activo = $("#activo").attr("checked");
+            var descripcion = $("#descripcion").val();
+
+            Pace.track(() => {
+                $.ajax({
+                    type:"POST",
+                    url: '@Url.Content("~/Configuracion/CrearActualizarParteElemento")',
+                    data: { IdElemento:@Model.IdElemento, IdParteElemento: idParteElemento, Descripcion: descripcion, Activo: activo },
+                    success: (data) => {
+                        mensaje("Se guardó correctamente la información", "success");
+                        $("#general").html(data);
+                    },
+                    error: (err) => {
+                        mensaje("Error al guardar la información", "error");
+                    }
+
+                });
+            });
+
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+
+</script>
+
+<div id="general" class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <h3 class="mt-5">Partes Elementos /</h3>
+            </div>
+        </div>
+
+        <div id="divCrearEditar" style="display:none; padding:2% 0;" class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="form-row">
+                    <div class="col-lg-1 col-md-1 col-sm-12">
+                        <label>Descripción</label>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <input id="descripcion" class="form-control" />
+                    </div>
+                    <div id="divActivo" class="col-lg-4 col-md-4 col-sm-12">
+                        <label>Activo</label>
+                        <input id="activo" type="checkbox" />
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <button class="btn btn-success" onclick="guardarParteElemento();">Guardar</button>
+                        <button class="btn btn-danger" onclick='$("#divCrearEditar").css("display","none")'>Cancelar</button>
+                    </div>
+                </div>
+                <input type="hidden" id="idParteElemento" />
+            </div>
+        </div>
+
+        <div class="row" style="padding:2% 0;">
+            <div class="col-lg-2 col-md-2 col-sm-12">
+                <button class="btn btn-primary" onclick="mostrarDivCrearEditar();">Agregar</button>
+                <a asp-controller="Configuracion" asp-action="Elemento">
+                    <input type="button" class="btn btn-danger" value="Volver">
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                @if (Model.ListadoParteElemento != null && Model.ListadoParteElemento.Any())
+                {
+                    <table class="table table-sm table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Descripción</th>
+                                <th>Activo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var parte in Model.ListadoParteElemento)
+                            {
+                                <tr>
+                                    <td>
+                                        <img style="cursor:pointer" src="~/images/editar.png" onclick="mostrarDivCrearEditar(@parte.IdParteElemento,'@parte.Descripcion',@parte.Activo.ToString().ToLower())" />
+                                    </td>
+                                    <td>@parte.Descripcion</td>
+                                    <td><input type="checkbox" checked=@parte.Activo disabled /></td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <h1>No hay partes para el elemento seleccionado</h1>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

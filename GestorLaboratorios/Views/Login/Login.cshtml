@@ -1,0 +1,144 @@
+﻿@model GestorLaboratorios.ViewModels.Login.LoginViewModel
+
+@{
+    Layout = null;
+}
+
+@*Se colocan aca dado que el login no pega a la Layout*@
+<link rel="stylesheet" href="~/css/bootstrap.css" />
+<script src="~/js/sweetalert2.js"></script>
+<script src="~/js/pace.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+
+
+<script type="text/javascript">
+
+    $(document).ready(() => {
+       @Model.JsFuncion
+
+    });
+
+
+    function mensajeError(bEstudiante) {
+        Swal.fire({
+            title: (bEstudiante)?"Código incorrecto":"Usuario o contraseña incorrectos",
+            type: "error"
+        });
+    }
+
+
+    /**
+    * Ingreso de datos
+    * sMensaje
+    * funcion     Función cuando ingrese los datos
+    */
+    function popUpCodigoEstudiante() {
+
+        Swal.fire({
+            title: "Ingrese su código",
+            input: "text",
+            inputAttributes: {
+                required: true,
+                errorMessage: "error"
+            },
+            showCancelButton: true,
+            cancelButtonColor: "red",
+            showLoaderOnConfirm: true,
+            confirmButtonText: 'Ingresar',
+            cancelButtonText: 'Cancelar',
+            allowOutsideClick: () => !Swal.isLoading(),
+        }).then((codigo) => {
+            if (codigo.value || codigo.value == "")
+                ingresoEstudiante(codigo.value);
+        });
+    }
+
+    /**
+     * Realiza la petición al controlador para validar el ingreso cuando se trata de un estudiante
+     * sCodigo
+     */
+    function ingresoEstudiante(sCodigo) {
+        try {
+            Pace.track(() => {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Content("~/Login/ValidarIngresoEstudiante")',
+                    data: { sCodigo: sCodigo },
+                    success: (data) => {
+                        if (data.ingreso) {
+                            window.location = '@Url.Content("~/Inicio/InicioEstudiante")';
+                        } else {
+                            mensajeError(true);
+                            //mensaje("Código incorrecto", "error");
+                        }
+                        console.log(data);
+                    },
+                    error: (err) => {
+                        console.log(err);
+                    }
+                });
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+
+</script>
+
+
+
+<body style="background-color:lightgray">
+
+    <link rel="stylesheet" href="~/css/login.css" />
+
+    <div id="total">
+        <div class="container">
+            <div class="paquete">
+                <div id="contenido">
+
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="primercontenido">
+                                <img src="~/images/logoUan.png" id="icono" alt="icono logo" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12.col-sm-12">
+                            <form asp-controller="Login" asp-action="ValidarIngreso" method="post">
+                                <div class="form-row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 wrap-input100 validate-input" data-validate="Ingresar Usuario">
+                                        <input class="contenido dos" placeholder="Correo" asp-for="sCorreo" required>
+                                        <span class="text-danger" asp-validation-for="sCorreo"></span>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 validate-input" data-validate="Ingresar Contraseña">
+                                        <input class="contenido tres" placeholder="Contraseña" asp-for="sContrasena" required>
+                                        <span class="text-danger" asp-validation-for="sContrasena"></span>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12">
+                                        <button class="contenido cuatro btn" style="width:100%; color:white;">Ingresar</button>
+                                        @*<input type="submit" class="contenido cuatro" value="INGRESAR" style="cursor:pointer">*@
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="Mensaje" class="text-danger"></span>
+
+                    <div id="pieformulario">
+                        <p class="subhover" style="cursor:pointer;" onclick="popUpCodigoEstudiante();">Soy estudiante</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>

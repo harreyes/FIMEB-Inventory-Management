@@ -1,0 +1,76 @@
+﻿@model GestorLaboratorios.ViewModels.Pdf.HojaDeVidaElementoViewModel;
+
+@{
+    Layout = null;
+}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="~/css/bootstrap.css" rel="stylesheet">
+    <title>Hoja de vida elemento</title>
+</head>
+
+
+
+<body>
+    <div class="row" style="padding:15px;">
+        <div class="col-12">
+
+            <table class="table table-bordered" style="border:2px solid;">
+                <tbody>
+                    <tr style="border:2px solid;">
+                        <td style="width:30%; border:2px solid;">
+                            <img src="~/images/logoUan.png" height="150px" width="100%" />
+                        </td>
+                        <td style="width:50%;border:2px solid; text-align:center;">
+                            <br />
+                            <b>UNIVERSIDAD ANTONIO NARIÑO</b>
+                            <br />
+                            <b>FACULTAD DE INGENIERÍA MECÁNICA ELECTRONICA Y BIOMÉDICA</b>
+                            <br />
+                            <br />
+                            <b>HOJA DE VIDA DE EQUIPOS EN LABORATORIOS</b>
+                        </td>
+                        <td style="border:2px solid;"></td>
+                    </tr>
+                    <tr style="background-color:gray; text-align:center;border:2px solid;">
+                        <td colspan="3"><b>DESCRIPCIÓN DEL MANTENIMIENTO</b></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="3" style="padding:0;">
+                            <table style="border:2px solid; width:100%;">
+                                <thead style="background-color:gray;">
+                                    <tr>
+                                        <td style="width:10%; border:2px solid;text-align:center;"><b>FECHA</b></td>
+                                        <td style="width:15%; border:2px solid;text-align:center;"><b>REALIZADO POR</b></td>
+                                        <td style="width:5%; border:2px solid;text-align:center;"><b>TIPO MANTENIMIENTO</b></td>
+                                        <td style="width:5%; border:2px solid;text-align:center;"><b>REPUESTOS INSTALADOS</b></td>
+                                        <td style="width:55%; border:2px solid;text-align:center;"><b>DESCRIPCIÓN DE LA ACTIVIDAD REALIZADA</b></td>
+                                        <td style="width:10%; border:2px solid;text-align:center;"><b>FIRMA</b></td>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var man in Model.ListadoMantenimiento)
+                                    {
+                                        <tr>
+                                            <td style="width:10%;border:2px solid;">@man.Fecha</td>
+                                            <td style="width:15%; border:2px solid;">@man.Usuario</td>
+                                            <td style="width:5%; border:2px solid;">@man.TipoMantenimiento </td>
+                                            <td class="text-capitalize" style="width:5%;border:2px solid;">@man.Repuestos</td>
+                                            <td class="text-capitalize" style="width:55%;border:2px solid;">@man.Observacion</td>
+                                            <td style="width:10%; border:2px solid;"></td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>

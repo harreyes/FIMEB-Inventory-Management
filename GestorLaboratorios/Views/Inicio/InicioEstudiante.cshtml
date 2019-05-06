@@ -1,0 +1,146 @@
+﻿@model GestorLaboratorios.ViewModels.Inicio.InicioEstudianteViewModel;
+@using GestorLaboratorios.Settings;
+
+@inject Encrypter encrypter;
+
+
+<script type="text/javascript">
+
+    function cancelar() {
+        try {
+            $("#divReserva").css("display", "none");
+        } catch (err) {
+            window.location.href='@Url.Content("~/Login/Login")'
+        }
+    }
+
+
+
+    function reserva() {
+        try {
+            $("#divReserva").css("display", "block");
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+
+    function crearReserva(dataForm) {
+        try {
+            var arregloIdsElementos = [];
+            $("#tablaCheck").find("td#tdFiltro input:checked").each((index, item) => {
+                arregloIdsElementos.push(item.id);
+            });
+
+            if (arregloIdsElementos.length > 0) {
+                var data = $(dataForm).serializeArray();
+                data.push({ name: "IdsElementos", value: arregloIdsElementos });
+                data.push({ name: "Prestamo", value: false });
+
+                Pace.track(() => {
+                    $.ajax({
+                        type: "POST",
+                        data: data,
+                        url: '@Url.Content("~/Configuracion/CrearPrestamo")',
+                        success: (data) => {
+                            window.location.href = '@Url.Content("~/Inicio/InicioEstudiante")';
+                        },
+                        error: (err) => {
+                            window.location.href = '@Url.Content("~/Login/Login")';
+                        }
+                    })
+                });
+            }
+            else {
+                mensaje("Debe seleccionar algún elemento", "error");
+            }
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+    @Html.Raw(Model.JsFuncion);
+
+</script>
+
+<div id="general" class="row">
+
+    <div class="col-lg-12 col-sm-12 col-sm-12">
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <h1>Reservas</h1>
+            </div>
+        </div>
+
+        <div id="divReserva" style="display:none;" class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <form id="formularioCrearPrestamo" onsubmit="crearReserva(this); return false;">
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <label>Fecha</label>
+                        <input asp-for="Fecha" class="form-control" id="fechaInicio" placeholder="Fecha inicio" type="date" />
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <label>Profesor</label>
+                        <input asp-for="Profesor" class="text-capitalize form-control" id="profesor" />
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <label>Materia</label>
+                        <input asp-for="Materia" class="text-capitalize form-control" id="materia" />
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <button type="submit" class="btn btn-success">Guardar</button>
+                        <input type="button" class="btn btn-danger" value="Cancelar" onclick="cancelar();" />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.ListadoDetalleElemento != null && Model.ListadoDetalleElemento.Any())
+        {
+            <div id="divBotonReserva" class="row">
+                <div class="col-lg-2 col-md-2 col-sm-12">
+                    <button class="btn btn-primary" onclick="reserva();">Reseva</button>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                @if (Model.ListadoDetalleElemento != null && Model.ListadoDetalleElemento.Any())
+                {
+                    <table id="tablaCheck" class="table table-sm table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <td></td>
+                                <td scope="col">Placa</td>
+                                <td scope="col">Tipo Elemento</td>
+                                <td scope="col">Serial</td>
+                                <td scope="col">Modelo</td>
+                                <td scope="col">Marca</td>
+                            </tr>
+
+                            @foreach (var ele in Model.ListadoDetalleElemento)
+                            {
+                                <tr>
+                                    <td id="tdFiltro">
+                                        <input id="@encrypter.Encrypt(ele.IdElemento.ToString())" type="checkbox" />
+                                    </td>
+                                    <td>@ele.Placa</td>
+                                    <td>@ele.TipoElemento</td>
+                                    <td>@ele.Serial</td>
+                                    <td>@ele.Modelo</td>
+                                    <td>@ele.Marca</td>
+                                </tr>
+                            }
+                        </thead>
+                    </table>
+                }
+                else
+                {
+                    <h1>No hay elementos disponibles</h1>
+                }
+            </div>
+        </div>
+    </div>
+</div>

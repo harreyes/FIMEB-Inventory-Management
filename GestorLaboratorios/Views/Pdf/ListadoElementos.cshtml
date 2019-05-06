@@ -1,0 +1,89 @@
+﻿@model GestorLaboratorios.ViewModels.Pdf.ListadoElementosViewModel;
+
+@{
+    Layout = null;
+}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="~/css/bootstrap.css" rel="stylesheet">
+    <title>Listado elementos</title>
+
+    <style>
+        .bordesCentro {
+            border: 2px solid;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="row" style="padding:15px;">
+        <div class="col-12">
+
+            <table class="table" style="border:2px solid;">
+                <tbody>
+                    <tr style="border:2px solid;">
+                        <td style="width:30%; border:2px solid;">
+                            <img src="~/images/logoUan.png" height="150px" width="100%" />
+                        </td>
+                        <td style="width:50%;border-left:2px; text-align:center;">
+                            <br />
+                            <b>UNIVERSIDAD ANTONIO NARIÑO</b>
+                            <br />
+                            <b>FACULTAD DE INGENIERÍA MECÁNICA ELECTRONICA Y BIOMÉDICA</b>
+                            <br />
+                            <br />
+                            <b>HOJA DE VIDA DE EQUIPOS EN LABORATORIOS</b>
+                        </td>
+                        <td></td>
+                    </tr>
+
+
+                    <tr>
+                        <td colspan="3" style="padding:0;">
+                            <table style="border:2px solid; width:100%;">
+                                <thead style="background-color:gray;">
+                                    <tr>
+                                        <td style="width:5%;" class="bordesCentro"><b>N°</b></td>
+                                        <td style="width:10%;" class="bordesCentro"><b>SERIAL</b></td>
+                                        <td style="width:10%;" class="bordesCentro"><b>MODELO</b></td>
+                                        <td style="width:15%;" class="bordesCentro"><b>DESCRIPCIÓN DEL ACTIVO</b></td>
+                                        <td style="width:20%;" class="bordesCentro"><b>PARTES</b></td>
+                                        <td style="width:5%;" class="bordesCentro"><b>PLACA UAN</b></td>
+                                        <td style="width:15%;" class="bordesCentro"><b>MARCA</b></td>
+                                        <td style="width:5%;" class="bordesCentro"><b>C</b></td>
+                                        <td style="width:15%;" class="bordesCentro"><b>OBSERVACIONES</b></td>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var ele in Model.ListadoElementos.Select((item, index) => new { item, index }))
+                                    {
+                                        <tr>
+                                            <td style="width:5%;" class="bordesCentro">@(ele.index + 1)</td>
+                                            <td style="width:10%;" class="bordesCentro">@ele.item.Serial</td>
+                                            <td style="width:10%;" class="bordesCentro">@ele.item.Modelo</td>
+                                            <td style="width:15%;" class="bordesCentro text-capitalize">@ele.item.Descripcion</td>
+                                            <td style="width:20%;" class="bordesCentro text-capitalize">@ele.item.Partes</td>
+                                            <td style="width:5%;" class="bordesCentro text-capitalize">@ele.item.PlacaUan</td>
+                                            <td style="width:15%;" class="bordesCentro" >@ele.item.Marca</td>
+                                            <td style="width:5%;" class="bordesCentro" >@ele.item.Cantidad</td>
+                                            <td style="width:15%;" class="bordesCentro" >@ele.item.Observacion</td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+
+

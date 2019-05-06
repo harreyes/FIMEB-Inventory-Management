@@ -1,0 +1,352 @@
+﻿@model GestorLaboratorios.ViewModels.Configuracion.ElementoViewModel
+@using GestorLaboratorios.Settings
+@inject Encrypter encrypter;
+
+<script type="text/javascript">
+    function cancelar() {
+        try {
+            $("#prestamo").css("display", "none");
+        } catch (err) {
+            window.location.href='@Url.Content("~/Login/Login")'
+        }
+    }
+    function crearPrestamo(dataForm) {
+        try {
+            var arregloIdsElementos = [];
+            $("#tablaCheck").find("td#tdFiltro input:checked").each((index, item) => {
+                arregloIdsElementos.push(item.id);
+            });
+
+            if (arregloIdsElementos.length > 0) {
+                var data = $(dataForm).serializeArray();
+                data.push({ name: "IdsElementos", value: arregloIdsElementos });
+                data.push({ name: "Prestamo", value: true });
+
+                Pace.track(() => {
+                    $.ajax({
+                        type: "POST",
+                        data: data,
+                        url: '@Url.Content("~/Configuracion/CrearPrestamo")',
+                        success: (data) => {
+                            window.location.href = '@Url.Content("~/Configuracion/Elemento")';
+                            console.log(data);
+                        },
+                        error: (err) => {
+                            window.location.href = '@Url.Content("~/Login/Login")';
+                        }
+                    })
+                });
+            }
+            else {
+                mensaje("Debe seleccionar algún elemento", "error");
+            }
+
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+
+
+    function mensajeCreacionPrestamo(bRespuesta) {
+        try {
+            var mensajeMostrar = (bRespuesta) ? "Se creó correctamente el prestamo" : "Error al crear el prestamo";
+            var icon = (bRespuesta) ? "success" : "error";
+            mensaje(mensajeMostrar, icon);
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+
+    /**
+     * Muestra el mensaje para saber si la información se guardó correctamente  o no
+     * bRespuesta   si es true, se insertó o actualizó bien
+     */
+    function mensajeRespuestaCrearActualizar(bRespuesta) {
+        try {
+            var mensajeMostrar = (bRespuesta) ? "La información se guardó correctamente " : "Error al guardar la información";
+            var icon = (bRespuesta) ? "success" : "error";
+            mensaje(mensajeMostrar, icon);
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+    @Html.Raw(Model.JsFunction)
+
+    function prestamo() {
+        try {
+            Pace.track(() => {
+                $.ajax({
+                    type: "GET",
+                    async: false,
+                    url: '@Url.Content("~/Configuracion/CargarVistaPrestamo")',
+                    success: (data) => {
+                        $("#prestamo").css("display", "block").html(data);
+                    },
+                    error: (err) => {
+                        window.location.href = '@Url.Content("~/Login/Login")';
+                    }
+                });
+            });
+
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+    /**
+    *  Actualiza el estado del elemento
+    * param sMensaje
+    * param iIdEstadoOrigen
+    * param iIdEstadoDestino
+    * param iIdElemento
+    */
+    function cambiarEstadoElemento(sMensaje, iIdEstadoOrigen, iIdEstadoDestino, iIdElemento) {
+        try {
+            var funcionConfirmacion = () => {
+                //se crea una variable que va a contener una función que va a actualizar el estado
+                var ajaxFunctionVariable = (data) => {
+                    Pace.track(() => {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Content("~/Configuracion/CambiarEstadoElemento")',
+                            data: data,
+                            success: (data) => {
+                                $("#general").html(data);
+                            },
+                            error: (err) => {
+                                window.location.href = '@Url.Content("~/Login/Login")';
+                            }
+                        });
+                    });
+                };
+
+                var data = {
+                    IdEstadoCombo:@Model.IdEstadoElemento,
+                    IdElemento: iIdElemento,
+                    IdEstadoDestino: iIdEstadoDestino,
+                    IdTipoMantenimiento : 0,
+                    ObservacionMantenimiento: "",
+                    RepuestosMantenimiento: ""
+                };
+
+                var htmlListaTipoMantenimiento = {};
+
+                if (iIdEstadoOrigen == 3) {
+                    Swal.fire({
+                        title:"Mantenimiento",
+                        html: '<input id="observacion" placeholder="Observación" class="swal2-input"/> <input id="repuestos" placeholder="Repuestos" class="swal2-input"/>',
+                        showCancelButton: true,
+                        cancelButtonText: "Cancelar",
+                        cancelButtonColor:"#d33"
+                    }).then((resultado) => {
+                        if (resultado.value) {
+                            data.ObservacionMantenimiento = $('#observacion').val();
+                            data.RepuestosMantenimiento = $('#repuestos').val();
+                            ajaxFunctionVariable(data);
+                        }
+                    });
+                } else {
+                    if (iIdEstadoDestino == 3) {
+                        Pace.track(() => {
+                            $.ajax({
+                                type: "POST",
+                                url: '@Url.Content("~/Configuracion/CargarListaTipoMantenimiento")',
+                                async:false,
+                                success: (data) => {
+                                    data.forEach((item) => {
+                                        htmlListaTipoMantenimiento[`${item.value}`] = item.text;
+                                    });
+                                    console.log(htmlListaTipoMantenimiento);
+                                },
+                                error: (err) => {
+                                    //console.log(err);
+                                    window.location.href = '@Url.Content("~/Login/Login")';
+                                }
+                            });
+                        });
+
+                        Swal.fire({
+                            title: 'Tipo de mantenimiento',
+                            input: 'select',
+                            showCancelButton: true,
+                            cancelButtonText: "Cancelar",
+                            cancelButtonColor: '#d33',
+                            inputOptions: htmlListaTipoMantenimiento
+                        }).then((resultado) => {
+                            if (resultado.value) {
+                                data.IdTipoMantenimiento = resultado.value;
+                                ajaxFunctionVariable(data);
+                            }
+                        });
+                    } else {
+                        ajaxFunctionVariable(data);
+                    }
+                }
+            };
+
+            confirmar(`¿Desea ${sMensaje} el elemento?`, funcionConfirmacion);
+
+        } catch (err) {
+            //console.log(err);
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+
+</script>
+
+<div id="general">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <h3 class="mt-5">Elementos /</h3>
+                </div>
+            </div>
+
+            <div id="prestamo" class="row">
+
+            </div>
+
+            <div class="row" id="general" style="padding:2% 0;">
+                <div class="col-lg-2 col-md-2 col-sm-12">
+                    <a asp-controller="Configuracion" asp-action="CargarDetalleElemento" asp-route-IdEleConver="@encrypter.Encrypt("0")">
+                        <input class="btn btn-primary" type="button" value="Agregar" />
+                    </a>
+                </div>
+                @if (@Model.IdEstadoElemento == 1)
+                {
+                    <div id="divPrestamo" class="col-lg-2 col-md-2 col-sm-12">
+                        <button class="btn btn-primary" onclick="prestamo();">Prestamo</button>
+                    </div>
+                }
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-4 col-sm-12">
+                    <label>Estado</label>
+                    <select class="form-control" onchange='$("#idEstadoElemento").val(this.value); $("#formCambioEstadoElemento").submit();' asp-items="Model.ListadoEstadoElemento" asp-for="IdEstadoElemento"></select>
+                    <form id="formCambioEstadoElemento" asp-controller="Configuracion" asp-action="Elemento">
+                        <input id="idEstadoElemento" type="hidden" asp-for="IdEstadoElemento" />
+                    </form>
+                </div>
+
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <a asp-controller="Pdf" asp-action="ListadoElementos" target="_blank">
+                        <img src="~/images/pdf.png" title="Exportar todos" />
+                    </a>
+                </div>
+
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <a asp-controller="Configuracion" asp-action="ExportarExcel">
+                        <img src="~/images/excel.png" title="Exportar todos" />
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="row" style="padding-top:2%;">
+                <div class="col-lg-1 col-md-1 col-sm-12">
+                    <a asp-controller="Configuracion" asp-action="ExportarExcel" asp-route-IdEstado="@Model.IdEstadoElemento">
+                        <img src="~/images/excel.png" title="Exportar estado actual" />
+                    </a>
+                </div>
+            </div>
+
+            <div class="row" style="padding:2% 0;">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    @if (Model.ListadoDetalleElemento != null && Model.ListadoDetalleElemento.Any())
+                    {
+                        <table id="tablaCheck" class="table table-bordered table-striped" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td scope="col">Placa</td>
+                                    <td scope="col">Tipo Elemento</td>
+                                    <td scope="col">Serial</td>
+                                    <td scope="col">Modelo</td>
+                                    <td scope="col">Marca</td>
+                                    <td scope="col">Observaciones</td>
+                                    <td scope="col">Usuario Creación</td>
+                                    <td scope="col">Fecha Creación</td>
+                                    <td scope="col">Activo</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var elemento in Model.ListadoDetalleElemento)
+                                {
+                                    <tr>
+                                        <td id="tdFiltro">
+                                            @if (Model.IdEstadoElemento == 1 && elemento.Activo)
+                                            {
+                                                <input id="@encrypter.Encrypt(elemento.IdElemento.ToString())" type="checkbox" />
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Configuracion" asp-action="CargarDetalleElemento"
+                                               asp-route-IdEleConver="@encrypter.Encrypt(elemento.IdElemento.ToString())">
+                                                <img src="~/images/editar.png" style="cursor:pointer;" title="Editar" />
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Configuracion" asp-action="ElementoParte"
+                                               asp-route-IdEleEncryp="@encrypter.Encrypt(elemento.IdElemento.ToString())">
+                                                <img src="~/images/verMas.png" style="cursor:pointer;" title="Partes" />
+                                            </a>
+                                        </td>
+                                        <td>@elemento.Placa</td>
+                                        <td>@elemento.TipoElemento</td>
+                                        <td>@elemento.Serial</td>
+                                        <td>@elemento.Modelo</td>
+                                        <td>@elemento.Marca</td>
+                                        <td>@elemento.Observacion</td>
+                                        <td>@elemento.NombreUsuarioCreacion</td>
+                                        <td>@elemento.FechaCreacion</td>
+                                        <td><input type="checkbox" disabled checked=@elemento.Activo /></td>
+                                        <td>
+                                            @if (Model.IdEstadoElemento == 1)
+                                            {
+                                                <img src="~/images/enviar_mantenimiento.png" onclick="cambiarEstadoElemento('enviar a mantenimiento', @elemento.IdEstadoElemento, 3, @elemento.IdElemento);" style="cursor:pointer;" title="Enviar a Mantenimiento" />
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @if (Model.IdEstadoElemento == 1)
+                                            {
+                                                <img src="~/images/eliminar.png" onclick="cambiarEstadoElemento('dar de baja', @elemento.IdEstadoElemento, 4, @elemento.IdElemento);" style="cursor:pointer;" title="Dar de Baja" />
+                                            }
+                                            else if (Model.IdEstadoElemento == 3)
+                                            {
+                                                <img src="~/images/volver_disponible.png" onclick="cambiarEstadoElemento('enviar a disponible', @elemento.IdEstadoElemento,1,@elemento.IdElemento);" style="cursor:pointer;" title="Volver a Disponible" />
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Pdf" asp-action="HojaDeVidaElemento" target="_blank"
+                                               asp-route-IdEle="@encrypter.Encrypt(elemento.IdElemento.ToString())">
+                                                <img src="~/images/pdf.png" title="Hoja de vida" />
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <h1> No hay elementos</h1>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

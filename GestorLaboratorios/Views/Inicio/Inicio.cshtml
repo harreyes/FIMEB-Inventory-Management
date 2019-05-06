@@ -1,0 +1,105 @@
+﻿@using GestorLaboratorios.Settings;
+
+@model GestorLaboratorios.ViewModels.Inicio.InicioViewModel
+
+@inject Encrypter encrypter;
+
+<script type="text/javascript">
+
+    @Html.Raw(Model.JsFuncion)
+
+    function confirmarAceptarRechazar(mensaje, idReservaPrestamo, idEstado) {
+        try {
+            confirmar(`¿Desea ${mensaje} la reserva?`, () => {
+                Pace.track(() => {
+                    $.ajax({
+                        type: "GET",
+                        data: { IdPrestamoReserva: idReservaPrestamo, IdEstado: idEstado, Prestamo:false },
+                        url: '@Url.Content("~/Inicio/CambiarEstadoReservaPrestamo")',
+                        success: (data) => {
+                            window.location.href = '@Url.Content("~/Inicio/Inicio")';
+                        },
+                        error: (err) => {
+                            window.location.href = '@Url.Content("~/Login/Login")';
+                        }
+                    });
+                });
+            });
+
+        } catch (err) {
+            window.location.href = '@Url.Content("~/Login/Login")';
+        }
+    }
+
+</script>
+
+<div id="general">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <h3 class="mt-5">Préstamos /</h3>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    @if (Model.ListadoPrestamo != null && Model.ListadoPrestamo.Any())
+                    {
+                        <table class="table table-sm table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Usuario</th>
+                                    <th>Tipo Solicitud</th>
+                                    <th>Fecha</th>
+                                    <th>Profesor</th>
+                                    <th>Materia</th>
+                                    <th>Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var prestamo in Model.ListadoPrestamo)
+                                {
+                                    <tr>
+                                        <td>@prestamo.IdPrestamo</td>
+                                        <td>@prestamo.Usuario</td>
+                                        <td>@prestamo.TipoSolicitud</td>
+                                        <td>@prestamo.Fecha</td>
+                                        <td>@prestamo.Profesor</td>
+                                        <td>@prestamo.Materia</td>
+                                        <td>@prestamo.Estado</td>
+                                        <td>
+                                            @*@if (prestamo.IdTipoSolicitud == 1 || (prestamo.IdTipoSolicitud == 2 && prestamo.Estado != null))*@
+                                            @*{*@
+                                            <a asp-controller="Inicio" asp-action="ElementosPrestamo"
+                                               asp-route-IdPresEncrip="@encrypter.Encrypt(prestamo.IdPrestamo.ToString())"
+                                               asp-route-IdEstadoEncrip="@encrypter.Encrypt(prestamo.IdEstado.ToString())">
+                                                <img src="~/images/verMas.png" style="cursor:pointer;" title="Ver Elementos" />
+                                            </a>
+                                            @* } *@
+
+                                            @if (prestamo.IdTipoSolicitud == 2 && prestamo.IdEstado == 4)
+                                            {
+                                                <img onclick="confirmarAceptarRechazar('aceptar',@prestamo.IdPrestamo,1);" src="~/images/aceptar.png" style="cursor:pointer;" title="Aceptar Reserva" />
+                                                <img onclick="confirmarAceptarRechazar('rechazar',@prestamo.IdPrestamo,3);" src="~/images/rechazar.png" style="cursor:pointer;" title="Rechazar Reserva" />
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <h1>No hay préstamos ni reservas del día en curso</h1>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
